@@ -12,12 +12,18 @@ import { LoginMapper } from 'src/app/auth/login/mapper/login.mapper';
 })
 export class AuthService {
   private http = inject(HttpClient);
+   private tokenKey = 'auth_token';
 
   profile = signal<Profile | null>(null);
   private token = signal<string | null>(null);
 
-  isAuthenticated = computed(() => this.profile() !== null);
+  //isAuthenticated = computed(() => this.profile() !== null && !this.isTokenExpired(this.token() || ''));
 
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    // Also validate token expiration if needed
+    return !!token && !this.isTokenExpired(token);
+  }
 
   doLogin(credentials:LoginRequest) {
     // Lógica de autenticación aquí
@@ -28,7 +34,10 @@ export class AuthService {
         this.setAuth(response);
       })
     )
+  }
 
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenKey);
   }
 
   private setAuth(response: LoginResponse) {
